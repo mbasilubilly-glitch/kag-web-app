@@ -1,0 +1,236 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+
+  --font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-heading: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+
+  --color-primary: #1e3a8a;
+  --color-accent: #d4af37;
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-text: #0f172a;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-primary: #2563eb;
+  --color-accent: #facc15;
+  --color-background: #1e293b;
+  --color-surface: #334155;
+  --color-text: #f8fafc;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  @apply bg-canvas text-gray-900 antialiased transition-colors duration-300 dark:bg-canvas-dark dark:text-slate-100;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+button,
+input,
+textarea,
+select {
+  @apply outline-none;
+}
+
+button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  @apply ring-2 ring-primary-200 border-primary-500;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-slate-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary-400 rounded-full hover:bg-primary-500;
+}
+
+.container {
+  @apply mx-auto max-w-6xl px-4 sm:px-6;
+}
+
+/* Utility classes */
+.gradient-hero {
+  @apply bg-gradient-hero;
+}
+
+.gradient-card {
+  @apply bg-gradient-card;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    @apply opacity-0 translate-y-4;
+  }
+  to {
+    @apply opacity-100 translate-y-0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(88, 101, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(88, 101, 255, 0.6);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes kenBurns {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.12);
+  }
+}
+
+.animate-ken-burns {
+  animation: kenBurns 18s ease-in-out infinite alternate;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  @apply animate-[fadeIn_0.5s_ease-out];
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fadeInUp-delay-1 {
+  animation: fadeInUp 0.6s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+.animate-fadeInUp-delay-2 {
+  animation: fadeInUp 0.6s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-fadeInUp-delay-3 {
+  animation: fadeInUp 0.6s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+.animate-fadeInUp-delay-4 {
+  animation: fadeInUp 0.6s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.5s ease-out forwards;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.5s ease-out forwards;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.4s ease-out forwards;
+}
+
+.animate-pulseGlow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300;
+}
+
+.card-hover:hover {
+  @apply -translate-y-2 shadow-xl;
+}
+
+/* Gradient text variants */
+.gradient-text-primary {
+  @apply bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent;
+}
+
+.gradient-text-gold {
+  @apply bg-gradient-to-r from-secondary-500 to-secondary-300 bg-clip-text text-transparent;
+}
+
+/* Section dividers */
+.section-divider {
+  @apply w-20 h-1 bg-gradient-to-r from-primary-500 to-secondary-400 rounded-full mx-auto;
+}

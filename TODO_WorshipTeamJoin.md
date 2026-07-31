@@ -1,0 +1,2 @@
+- [x] Replace temporary submission to /api/contact-messages/ with a dedicated backend endpoint + model for Worship Team Join requests. Resolved by wiring Worship.jsx's join form to the existing Ministries module (MemberMinistry, /member-departments/register/) against the "Praise and Worship" ministry — no separate model needed.
+- [x] Add admin page to view/approve worship team join requests. Resolved by the existing generic Ministries admin console (AdminMinistryDetail.jsx for admin assignment, MinistryMembers.jsx for pending join requests + roster).

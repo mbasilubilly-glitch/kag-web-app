@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline - KAG Unity Church</title>
+    <style>
+      :root { color-scheme: light; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 0; background:#f8fafc; color:#0f172a; }
+      .wrap { max-width: 720px; margin: 0 auto; padding: 48px 20px; text-align:center; }
+      .card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px 18px; box-shadow: 0 10px 30px rgba(2,6,23,.05); }
+      h1 { margin: 0 0 12px; font-size: 22px; }
+      p { margin: 0 auto 18px; max-width: 520px; color:#334155; line-height:1.5; }
+      .pill { display:inline-block; padding:8px 12px; border-radius:999px; background:#0f172a; color:white; font-size: 12px; letter-spacing:.2px; }
+      button { border:0; background:#1d4ed8; color:white; padding:10px 14px; border-radius: 10px; font-weight: 600; cursor:pointer; }
+      button:active { transform: translateY(1px); }
+      .hint { margin-top: 10px; font-size: 12px; color:#64748b; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <div class="pill">You’re Offline</div>
+        <h1>Welcome to KAG Unity Church</h1>
+        <p>
+          Some content may be available. Reconnect to the internet to load the latest sermons, events, and announcements.
+        </p>
+        <button onclick="location.href='/'">Retry</button>
+
+        <div class="hint">Tip: Previously viewed pages/resources might still work.</div>
+<script>
+  // Auto-recover: when back online, try to return to the app.
+  window.addEventListener('online', async () => {
+    // Give the network stack a moment to recover.
+    await new Promise((r) => setTimeout(r, 800))
+    // If the user is logged in/out, route handling is done by the React app.
+    window.location.href = '/'
+  })
+</script>
+
+
+      </div>
+    </div>
+  </body>
+</html>
+

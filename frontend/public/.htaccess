@@ -1,0 +1,15 @@
+# React Router uses client-side routing - without this, refreshing (or
+# directly opening a link to) any route other than "/" returns Apache's own
+# 404 instead of loading the app, which then handles the route itself.
+# Vite copies everything under public/ verbatim into dist/, so this ships
+# to the same directory as index.html automatically on every build.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Real files/directories (JS, CSS, images, sw.js, manifest, etc.) are
+  # served as-is - only unmatched paths fall back to index.html.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
