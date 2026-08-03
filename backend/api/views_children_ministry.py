@@ -123,6 +123,7 @@ class AttendanceSessionListCreateView(AdminOnlyBase, generics.ListCreateAPIView)
 
 class AttendanceSessionDetailView(AdminOnlyBase, generics.RetrieveAPIView):
     serializer_class = ChildAttendanceSessionWithRecordsSerializer
+    queryset = ChildAttendanceSession.objects.all()
 
     def get_object(self):
         self.check_admin(self.request)
