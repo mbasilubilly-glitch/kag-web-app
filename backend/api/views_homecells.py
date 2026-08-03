@@ -31,7 +31,7 @@ def seed_if_empty():
 
 
 class HomecellListView(generics.ListAPIView):
-    queryset = Ministry.objects.filter(category='homecell').order_by('ministry_name')
+    queryset = Ministry.objects.filter(category='homecell', is_deleted=False).order_by('ministry_name')
     serializer_class = HomecellSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -85,11 +85,11 @@ class MemberDepartmentsRegisterView(generics.GenericAPIView):
         ministry_ids = serializer.validated_data['ministry_ids']
 
         # validate homecell
-        homecell = Ministry.objects.filter(id=homecell_id, category='homecell').first()
+        homecell = Ministry.objects.filter(id=homecell_id, category='homecell', is_deleted=False).first()
         if not homecell:
             return Response({'detail': 'Selected homecell is invalid.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        ministries = Ministry.objects.filter(id__in=ministry_ids, category='ministry')
+        ministries = Ministry.objects.filter(id__in=ministry_ids, category='ministry', is_deleted=False)
         if ministries.count() != len(ministry_ids):
             return Response({'detail': 'One or more ministries are invalid.'}, status=status.HTTP_400_BAD_REQUEST)
 

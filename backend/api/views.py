@@ -267,6 +267,67 @@ class LiveStreamView(generics.RetrieveUpdateAPIView):
         serializer.save(updated_by=self.request.user)
 
 
+class LiveStreamGoLiveView(generics.GenericAPIView):
+    """Church Admin/Media Team: flip the manual "is_live" flag on, driving
+    the "LIVE NOW" badge on the public Live page. No external API - the
+    admin is asserting they've actually started broadcasting from the link
+    already saved in LiveStreamView."""
+
+    serializer_class = LiveStreamSerializer
+    permission_classes = [IsChurchAdminOrMediaTeam]
+
+    def post(self, request, *args, **kwargs):
+        stream, _ = LiveStream.objects.get_or_create(pk=1)
+        stream.is_live = True
+        stream.updated_by = request.user
+        stream.save(update_fields=['is_live', 'updated_by'])
+        return Response(LiveStreamSerializer(stream).data)
+
+
+class LiveStreamEndView(generics.GenericAPIView):
+    """Church Admin/Media Team: end the live stream and archive it to the
+    Sermon Library (category='Live Recording') in one step, instead of
+    separately flipping the flag off and filling in the "Add a Past
+    Stream" form. video_url defaults to the currently saved live link -
+    this only produces a working recording when that link is the specific
+    broadcast's watch URL (YouTube/Facebook keep serving that same URL as
+    the recording once the broadcast ends), not a channel's generic
+    permanent /live link. Pass a different video_url in the request body
+    to override it (e.g. when the saved link IS the permanent one)."""
+
+    serializer_class = LiveStreamSerializer
+    permission_classes = [IsChurchAdminOrMediaTeam]
+
+    def post(self, request, *args, **kwargs):
+        stream, _ = LiveStream.objects.get_or_create(pk=1)
+        video_url = (request.data.get('video_url') or stream.url or '').strip()
+        if not video_url:
+            raise ValidationError({'video_url': 'No live link to archive - set one first or pass video_url.'})
+
+        title = (request.data.get('title') or '').strip() \
+            or f"Live Service - {timezone.now().strftime('%B %d, %Y')}"
+
+        sermon = Sermon.objects.create(
+            title=title,
+            speaker='',
+            category='Live Recording',
+            video_url=video_url,
+        )
+
+        stream.is_live = False
+        stream.updated_by = request.user
+        stream.save(update_fields=['is_live', 'updated_by'])
+
+        return Response(
+            {
+                'detail': 'Live stream ended and archived.',
+                'sermon': SermonSerializer(sermon).data,
+                'stream': LiveStreamSerializer(stream).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
 class EventListCreateView(generics.ListCreateAPIView):
     serializer_class = EventSerializer
 
@@ -327,8 +388,16 @@ class MinistryDetailView(generics.RetrieveUpdateDestroyAPIView):
     views_ministries_admin.py/views_homecells_admin.py is the normal path
     for that)."""
 
-    queryset = Ministry.objects.all()
     serializer_class = MinistrySerializer
+
+    def get_queryset(self):
+        # Members must not see (or resurrect via join) a recycle-binned
+        # department; admin edit/delete of a soft-deleted row still goes
+        # through the dedicated admin CRUD in views_ministries_admin.py, not
+        # here.
+        if self.request.method == 'GET':
+            return Ministry.objects.filter(is_deleted=False)
+        return Ministry.objects.all()
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -595,13 +664,14 @@ class AdminResetPasswordView(views.APIView):
 
 
 class EventRegistrationListCreateView(generics.ListCreateAPIView):
-    """Any signed-in member can register for an event (POST); the frontend
-    never lists this endpoint (EventRegistration.jsx only ever posts to
-    it) - listing every attendee's name/phone across every event is an
-    admin (church office) concern, same as ContactMessageListCreateView's
-    inbox, not something every member should be able to pull with a plain
-    GET. Was previously IsAuthenticated with no per-user scoping, letting
-    any Member/Visitor read every registration's name and phone number."""
+    """Anyone can register for an event (POST), signed in or not -
+    EventRegistration.jsx is a public walk-up form (name + phone only, no
+    login); the frontend never lists this endpoint - listing every
+    attendee's name/phone across every event is an admin (church office)
+    concern, same as ContactMessageListCreateView's inbox, not something
+    every member should be able to pull with a plain GET. Was previously
+    IsAuthenticated with no per-user scoping, letting any Member/Visitor
+    read every registration's name and phone number."""
 
     queryset = EventRegistration.objects.order_by('-created_at')
     serializer_class = EventRegistrationSerializer
@@ -609,10 +679,11 @@ class EventRegistrationListCreateView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method in ('GET', 'HEAD', 'OPTIONS'):
             return [IsChurchAdmin()]
-        return [IsAuthenticated()]
+        return [permissions.AllowAny()]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        user = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(user=user)
 
 
 class EventRegistrationDetailView(generics.RetrieveUpdateDestroyAPIView):

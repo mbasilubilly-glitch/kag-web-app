@@ -140,7 +140,30 @@ class DepartmentAdminAssignmentDeleteView(generics.GenericAPIView):
         if not assignment:
             raise ValidationError({'detail': 'Assignment not found.'})
 
+        admin_user = assignment.admin_user
         assignment.delete()
+
+        # If this was their last department, revert the promotion made in
+        # DepartmentAdminAssignmentCreateView.post() - otherwise they keep
+        # role='Administrator' with no assignment, which
+        # is_church_admin_account() then misreads as a real Church Admin
+        # account (manageable only by the Super Admin, counted against
+        # MAX_CHURCH_ADMINS) instead of the plain member they've reverted to.
+        still_assigned = DepartmentAdminAssignment.objects.filter(admin_user=admin_user).exists()
+        if not still_assigned:
+            profile = getattr(admin_user, 'profile', None)
+            if profile and profile.role == 'Administrator':
+                old_role = profile.role
+                profile.role = 'Member'
+                profile.save(update_fields=['role'])
+                RoleAuditLog.objects.create(
+                    actor=request.user,
+                    target_user=admin_user,
+                    old_role=old_role,
+                    new_role='Member',
+                    reason=f'Department admin assignment #{assignment_id} removed (last department)',
+                )
+
         return Response({'detail': 'Department admin assignment removed.'}, status=status.HTTP_200_OK)
 
 

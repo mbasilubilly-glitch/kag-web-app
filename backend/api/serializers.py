@@ -134,8 +134,8 @@ class LiveStreamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LiveStream
-        fields = ['id', 'url', 'updated_at', 'updated_by_name']
-        read_only_fields = ['id', 'updated_at', 'updated_by_name']
+        fields = ['id', 'url', 'updated_at', 'updated_by_name', 'is_live']
+        read_only_fields = ['id', 'updated_at', 'updated_by_name', 'is_live']
 
     def get_updated_by_name(self, obj):
         if not obj.updated_by:

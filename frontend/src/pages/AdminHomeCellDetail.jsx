@@ -4,7 +4,7 @@ import api from '../api'
 import { extractErrorMessage } from '../utils/errors'
 
 const MEETING_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-const MAX_DEPARTMENT_ADMINS = 3
+const MAX_DEPARTMENT_ADMINS = 4
 
 function readableError(err, fallback) {
   return extractErrorMessage(err, fallback)
@@ -287,14 +287,17 @@ export default function AdminHomeCellDetail() {
           <div className="text-slate-500 text-sm">No leaders assigned yet.</div>
         ) : (
           <div className="grid gap-2">
-            {assignments.map((a) => (
+            {assignments.map((a, i) => (
               <div key={a.id} className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3">
-                <div>
-                  <span className="font-semibold">{a.admin?.username || `User #${a.admin_user_id}`}</span>
-                  <span className="ml-2 text-xs rounded-full bg-slate-100 px-2 py-0.5 font-semibold">
-                    {a.assignment_role === 'assistant_leader' ? 'Assistant Leader' : 'Leader'}
-                  </span>
-                  {a.duties && <div className="text-slate-500 text-xs mt-1">{a.duties}</div>}
+                <div className="flex items-start gap-3">
+                  <span className="text-slate-400 text-sm font-semibold w-5 shrink-0">{i + 1}.</span>
+                  <div>
+                    <span className="font-semibold">{a.admin?.username || `User #${a.admin_user_id}`}</span>
+                    <span className="ml-2 text-xs rounded-full bg-slate-100 px-2 py-0.5 font-semibold">
+                      {a.assignment_role === 'assistant_leader' ? 'Assistant Leader' : 'Leader'}
+                    </span>
+                    {a.duties && <div className="text-slate-500 text-xs mt-1">{a.duties}</div>}
+                  </div>
                 </div>
                 <button onClick={() => removeAssignment(a.id)} className="rounded-full bg-red-500/15 text-red-700 px-4 py-1.5 text-sm font-semibold hover:bg-red-500/25">Remove</button>
               </div>
@@ -328,6 +331,7 @@ export default function AdminHomeCellDetail() {
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-200">
+                  <th className="py-2 px-3 font-semibold">#</th>
                   <th className="py-2 px-3 font-semibold">Name</th>
                   <th className="py-2 px-3 font-semibold">Email</th>
                   <th className="py-2 px-3 font-semibold">Phone</th>
@@ -336,8 +340,9 @@ export default function AdminHomeCellDetail() {
                 </tr>
               </thead>
               <tbody>
-                {members.map((m) => (
+                {members.map((m, i) => (
                   <tr key={m.user_id} className="border-b border-slate-100">
+                    <td className="py-2 px-3 text-slate-400">{i + 1}</td>
                     <td className="py-2 px-3">{`${m.first_name || ''} ${m.last_name || ''}`.trim() || '—'}</td>
                     <td className="py-2 px-3 text-slate-600">{m.email || '—'}</td>
                     <td className="py-2 px-3 text-slate-600">{m.phone || '—'}</td>

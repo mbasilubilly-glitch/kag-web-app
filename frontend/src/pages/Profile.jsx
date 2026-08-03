@@ -156,16 +156,20 @@ export default function Profile() {
 
   if (error && !profile) {
     return (
-      <div className="container py-10">
-        <div className="rounded-3xl bg-red-100 p-8 text-red-800">{error}</div>
+      <div className="min-h-screen bg-green-50 dark:bg-canvas-dark transition-colors duration-300">
+        <div className="container py-10">
+          <div className="rounded-3xl bg-red-100 p-8 text-red-800">{error}</div>
+        </div>
       </div>
     )
   }
 
   if (!profile || !form) {
     return (
-      <div className="container py-10">
-        <div className="rounded-3xl bg-slate-100 p-10 text-slate-600">Loading profile...</div>
+      <div className="min-h-screen bg-green-50 dark:bg-canvas-dark transition-colors duration-300">
+        <div className="container py-10">
+          <div className="rounded-3xl bg-slate-100 p-10 text-slate-600">Loading profile...</div>
+        </div>
       </div>
     )
   }
@@ -173,8 +177,9 @@ export default function Profile() {
   const roleLabel = profile.is_staff && profile.is_superuser ? 'Super Admin' : (profile.profile?.role || 'Visitor')
 
   return (
-    <div className="container py-10 space-y-8">
-      <MyConsoleNav />
+    <div className="min-h-screen bg-green-50 dark:bg-canvas-dark transition-colors duration-300">
+      <div className="container py-10 space-y-8">
+        <MyConsoleNav />
 
       <div className="rounded-3xl bg-white p-8 shadow-sm">
         <h1 className="text-3xl font-bold">Profile</h1>
@@ -333,7 +338,8 @@ export default function Profile() {
         </button>
       </form>
 
-      <SecurityQuestionsSettings />
+        <SecurityQuestionsSettings />
+      </div>
     </div>
   )
 }

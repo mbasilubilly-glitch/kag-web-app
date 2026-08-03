@@ -4,7 +4,7 @@ import api from '../api'
 import { extractErrorMessage } from '../utils/errors'
 
 const MEETING_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-const MIN_REQUIRED_ADMINS = 3
+const MIN_REQUIRED_ADMINS = 4
 
 const EMPTY_FORM = {
   ministry_name: '', description: '', meeting_day: '', meeting_time: '', meeting_venue: '',

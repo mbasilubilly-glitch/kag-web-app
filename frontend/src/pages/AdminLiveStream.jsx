@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../api'
 import { extractErrorMessage } from '../utils/errors'
 import { getStreamEmbedInfo } from '../utils/liveStream'
+import StreamEmbed from '../components/StreamEmbed'
 
 export default function AdminLiveStream() {
   const [url, setUrl] = useState('')
@@ -19,6 +20,12 @@ export default function AdminLiveStream() {
   const [archiveTitle, setArchiveTitle] = useState('')
   const [archiveUrl, setArchiveUrl] = useState('')
   const [addingArchive, setAddingArchive] = useState(false)
+
+  const [goingLive, setGoingLive] = useState(false)
+  const [endingLive, setEndingLive] = useState(false)
+  const [showEndForm, setShowEndForm] = useState(false)
+  const [endTitle, setEndTitle] = useState('')
+  const [endUrl, setEndUrl] = useState('')
 
   const load = () => {
     setLoading(true)
@@ -62,6 +69,49 @@ export default function AdminLiveStream() {
       setError(extractErrorMessage(err, 'Unable to save livestream settings.'))
     } finally {
       setSaving(false)
+    }
+  }
+
+  const goLive = async () => {
+    setError('')
+    setNotice('')
+    setGoingLive(true)
+    try {
+      const res = await api.post('/live-stream/go-live/')
+      setMeta(res.data)
+      setNotice('Marked as live. The "LIVE NOW" badge now shows on the public Live page.')
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Unable to mark the stream as live.'))
+    } finally {
+      setGoingLive(false)
+    }
+  }
+
+  const openEndForm = () => {
+    setEndTitle(`Live Service - ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`)
+    setEndUrl(url)
+    setShowEndForm(true)
+  }
+
+  const endLive = async (e) => {
+    e.preventDefault()
+    setError('')
+    setNotice('')
+    if (!endUrl.trim()) {
+      setError('Enter the recorded video link to archive.')
+      return
+    }
+    setEndingLive(true)
+    try {
+      const res = await api.post('/live-stream/end/', { title: endTitle, video_url: endUrl })
+      setMeta(res.data.stream)
+      setShowEndForm(false)
+      setNotice('Live stream ended and saved to the archive - visitors can now watch it anytime.')
+      loadPastBroadcasts()
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Unable to end and archive the stream.'))
+    } finally {
+      setEndingLive(false)
     }
   }
 
@@ -116,7 +166,86 @@ export default function AdminLiveStream() {
           Facebook Page's <code>/live</code> URL) - the public Live page embeds it directly and displays your
           broadcast automatically whenever you go live from that channel. No need to update anything per service.
         </p>
+        {meta && (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {meta.is_live ? (
+              <>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 text-white font-bold px-3 py-1 text-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  LIVE NOW
+                </span>
+                <button
+                  onClick={openEndForm}
+                  className="rounded-2xl bg-red-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-red-700"
+                >
+                  End Live &amp; Archive
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="text-slate-500 text-sm">Not live right now.</span>
+                <button
+                  disabled={goingLive}
+                  onClick={goLive}
+                  className="rounded-2xl bg-slate-900 text-white px-5 py-2.5 text-sm font-semibold hover:bg-slate-800 disabled:opacity-60"
+                >
+                  {goingLive ? 'Starting…' : 'Go Live'}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+        <p className="text-slate-500 text-xs mt-3">
+          Click <strong>Go Live</strong> when you start broadcasting from the link below, and <strong>End Live
+          &amp; Archive</strong> the moment the service ends - one click saves the recording to the archive so
+          visitors can watch it anytime, no need to fill in the form below separately.
+        </p>
       </div>
+
+      {showEndForm && (
+        <form onSubmit={endLive} className="rounded-3xl bg-white p-8 shadow-sm border border-red-200 space-y-4">
+          <h2 className="text-lg font-semibold">End Live &amp; Archive</h2>
+          <p className="text-slate-600 text-sm">
+            Confirm the recorded video link before archiving - it defaults to the live link above, which only
+            works as a recording if that was the specific broadcast's watch link (not a channel's generic
+            permanent /live link). Edit it below if needed.
+          </p>
+          <label className="block">
+            <span className="text-slate-700 text-sm">Title</span>
+            <input
+              value={endTitle}
+              onChange={(e) => setEndTitle(e.target.value)}
+              className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3"
+            />
+          </label>
+          <label className="block">
+            <span className="text-slate-700 text-sm">Recorded Video Link</span>
+            <input
+              type="url"
+              value={endUrl}
+              onChange={(e) => setEndUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=... or https://www.facebook.com/.../videos/..."
+              className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3"
+            />
+          </label>
+          <div className="flex gap-3">
+            <button
+              disabled={endingLive}
+              type="submit"
+              className="rounded-2xl bg-red-600 text-white px-6 py-3 font-semibold disabled:opacity-60"
+            >
+              {endingLive ? 'Archiving…' : 'Confirm & Archive'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowEndForm(false)}
+              className="rounded-2xl border border-slate-300 px-6 py-3 font-semibold hover:bg-slate-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
 
       {error && <div className="rounded-3xl bg-red-100 p-6 text-red-800">{error}</div>}
       {notice && <div className="rounded-3xl bg-green-100 p-6 text-green-800">{notice}</div>}
@@ -148,15 +277,13 @@ export default function AdminLiveStream() {
 
       <div className="rounded-3xl bg-white p-8 shadow-sm border border-slate-100">
         <h2 className="text-xl font-semibold mb-4">Preview</h2>
-        {preview?.type === 'youtube' || preview?.type === 'facebook' ? (
-          <div className="aspect-video w-full max-w-2xl rounded-2xl overflow-hidden bg-slate-900">
-            <iframe src={preview.embedUrl} title="Preview" className="w-full h-full" allowFullScreen />
+        {preview ? (
+          <div className="max-w-2xl">
+            <StreamEmbed
+              url={url}
+              emptyTitle="Enter your channel's permanent live link above to preview the embed."
+            />
           </div>
-        ) : preview?.type === 'linkout' ? (
-          <p className="text-slate-600 text-sm">
-            This platform can't be embedded directly - visitors will see a "Watch on {preview.platformLabel}"
-            button linking to the URL above.
-          </p>
         ) : (
           <p className="text-slate-500 text-sm">Enter your channel's permanent live link above to preview the embed.</p>
         )}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api'
-import { getStreamEmbedInfo } from '../utils/liveStream'
+import StreamEmbed from '../components/StreamEmbed'
 
 const SERVICE_TIMES = [
   { label: 'Sunday 1st Service', time: '8:00 AM' },
@@ -10,51 +10,6 @@ const SERVICE_TIMES = [
   { label: 'Prayer Meeting', time: 'Friday, 7:00 PM' },
   { label: 'Youth Service', time: 'Saturday, 5:00 PM' },
 ]
-
-function StreamEmbed({ url }) {
-  const embed = url ? getStreamEmbedInfo(url) : null
-
-  if (embed?.type === 'youtube' || embed?.type === 'facebook') {
-    return (
-      <div className="aspect-video w-full rounded-2xl overflow-hidden bg-slate-900">
-        <iframe
-          src={embed.embedUrl}
-          title="Stream"
-          className="w-full h-full"
-          allow="autoplay; encrypted-media; picture-in-picture"
-          allowFullScreen
-        />
-      </div>
-    )
-  }
-
-  if (embed?.type === 'linkout') {
-    return (
-      <div className="aspect-video w-full rounded-2xl bg-slate-900 flex flex-col items-center justify-center text-center px-6">
-        <div className="text-5xl mb-4">🎥</div>
-        <p className="text-white font-semibold">Watch on {embed.platformLabel}</p>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-block px-6 py-3 bg-secondary-400 text-primary-900 font-bold rounded-xl hover:bg-secondary-300 transition"
-        >
-          Watch →
-        </a>
-      </div>
-    )
-  }
-
-  return (
-    <div className="aspect-video w-full rounded-2xl bg-slate-900 flex flex-col items-center justify-center text-center px-6">
-      <div className="text-5xl mb-4">🎥</div>
-      <p className="text-white font-semibold">No service is streaming right now</p>
-      <p className="text-slate-400 text-sm mt-2 max-w-sm">
-        The stream opens shortly before each service listed on the right. Check back at the scheduled time.
-      </p>
-    </div>
-  )
-}
 
 export default function Live() {
   const [stream, setStream] = useState(null)
@@ -88,8 +43,20 @@ export default function Live() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Livestream player area */}
           <div className="lg:col-span-2 rounded-3xl bg-white p-6 shadow-lg border border-slate-100">
-            <h2 className="font-display text-2xl font-bold text-primary-800 mb-4">Livestream</h2>
-            <StreamEmbed url={stream?.url || null} />
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="font-display text-2xl font-bold text-primary-800">Livestream</h2>
+              {stream?.is_live && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 text-white text-xs font-bold px-3 py-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  LIVE NOW
+                </span>
+              )}
+            </div>
+            <StreamEmbed
+              url={stream?.url || null}
+              emptyTitle="No service is streaming right now"
+              emptyHint="The stream opens shortly before each service listed on the right. Check back at the scheduled time."
+            />
             <p className="text-slate-500 text-sm mt-4">
               Missed a service? Full recordings are available in our <Link to="/sermons" className="text-primary-600 font-semibold hover:underline">Sermon Library</Link>.
             </p>

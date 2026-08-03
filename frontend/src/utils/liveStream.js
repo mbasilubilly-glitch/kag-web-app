@@ -72,3 +72,35 @@ export function getStreamEmbedInfo(url) {
 
   return { type: 'linkout', embedUrl: null, platformLabel: host || 'the stream' }
 }
+
+// Lazily loads YouTube's IFrame Player API (https://www.youtube.com/iframe_api)
+// so we can attach to an existing <iframe> and listen for onError - notably
+// error codes 101/150, which YouTube fires when the video owner has
+// disabled embedding on other sites (the "Video unavailable... Watch on
+// YouTube" message otherwise shown *inside* the broken iframe itself).
+// Resolves the same promise/window.YT on every call after the first.
+let _ytApiPromise = null
+
+export function loadYouTubeIframeApi() {
+  if (typeof window === 'undefined') return Promise.reject(new Error('no window'))
+  if (window.YT && window.YT.Player) return Promise.resolve(window.YT)
+  if (_ytApiPromise) return _ytApiPromise
+
+  _ytApiPromise = new Promise((resolve, reject) => {
+    const previous = window.onYouTubeIframeAPIReady
+    window.onYouTubeIframeAPIReady = () => {
+      if (typeof previous === 'function') previous()
+      resolve(window.YT)
+    }
+
+    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+      const script = document.createElement('script')
+      script.src = 'https://www.youtube.com/iframe_api'
+      script.async = true
+      script.onerror = () => reject(new Error('Failed to load YouTube IFrame API'))
+      document.head.appendChild(script)
+    }
+  })
+
+  return _ytApiPromise
+}

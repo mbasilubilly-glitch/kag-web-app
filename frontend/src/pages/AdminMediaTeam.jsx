@@ -200,9 +200,10 @@ export default function AdminMediaTeam({ basePath = '/admin/media-team' }) {
           <div className="text-slate-500 text-sm">No Media Team members yet.</div>
         ) : (
           <div className="grid gap-3">
-            {members.map((m) => (
+            {members.map((m, i) => (
               <div key={m.id} className="rounded-2xl border border-slate-200 p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3">
+                  <span className="text-slate-400 text-sm font-semibold w-5 shrink-0">{i + 1}.</span>
                   {m.profile_picture ? (
                     <img src={m.profile_picture} alt="" className="w-12 h-12 rounded-full object-cover border border-slate-200" />
                   ) : (

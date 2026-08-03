@@ -122,6 +122,11 @@ class LiveStream(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
 
+    # Manually toggled via LiveStreamGoLiveView/LiveStreamEndView (see
+    # views.py) - not detected through any external API. Drives the "LIVE
+    # NOW" badge on the public Live page and admin panel.
+    is_live = models.BooleanField(default=False)
+
     def __str__(self):
         return f"LiveStream(is_live={self.is_live})"
 
@@ -149,7 +154,9 @@ class Event(models.Model):
 
 class EventRegistration(models.Model):
     """Attendee registration for an event."""
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    # Nullable: EventRegistration.jsx is a public, unauthenticated page (name
+    # + phone only, no login) - most registrants have no account at all.
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='registrations')
     full_name = models.CharField(max_length=255, blank=True, default='')
     phone = models.CharField(max_length=20, blank=True, default='')
@@ -161,7 +168,8 @@ class EventRegistration(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.full_name or self.user.username} - {self.event.title}"
+        name = self.full_name or (self.user.username if self.user else 'Guest')
+        return f"{name} - {self.event.title}"
 
 class PrayerRequest(models.Model):
     STATUS_CHOICES = [
@@ -474,13 +482,13 @@ class MemberMinistry(models.Model):
 # Staffing policy target for every Ministry/Home Cell Fellowship (and the
 # Media Team) - shown as guidance on admin list/detail/dashboard pages; a
 # department below this count is flagged "understaffed", never blocked.
-MIN_REQUIRED_ADMINS = 3
+MIN_REQUIRED_ADMINS = 4
 
 # Hard cap enforced at assignment time (see DepartmentAdminAssignmentCreateView/
-# DepartmentAdminCreateAccountView) - a 4th admin is rejected outright. Equal
-# to MIN_REQUIRED_ADMINS today, making 3 an exact target, not just a floor;
+# DepartmentAdminCreateAccountView) - a 5th admin is rejected outright. Equal
+# to MIN_REQUIRED_ADMINS today, making 4 an exact target, not just a floor;
 # kept as a separate constant since the two could diverge later.
-MAX_DEPARTMENT_ADMINS = 3
+MAX_DEPARTMENT_ADMINS = 4
 
 
 class DepartmentAdminAssignment(models.Model):

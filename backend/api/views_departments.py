@@ -15,7 +15,7 @@ class MemberMinistriesListView(generics.ListAPIView):
 
     def get_queryset(self):
         seed_if_empty()
-        return Ministry.objects.filter(category='ministry').order_by('ministry_name')
+        return Ministry.objects.filter(category='ministry', is_deleted=False).order_by('ministry_name')
 
 
 class MemberDepartmentsSnapshotView(generics.GenericAPIView):
@@ -40,7 +40,7 @@ class MemberDepartmentsSnapshotView(generics.GenericAPIView):
                 'homecell': HomecellSerializer(enrollment.homecell).data if enrollment else None,
                 'selected_ministry_ids': selected_ids,
                 'selected_ministry_statuses': selected_statuses,
-                'ministries': MinistrySerializer(Ministry.objects.filter(category='ministry').order_by('ministry_name'), many=True).data,
+                'ministries': MinistrySerializer(Ministry.objects.filter(category='ministry', is_deleted=False).order_by('ministry_name'), many=True).data,
             }
         )
 

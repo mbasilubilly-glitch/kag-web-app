@@ -35,6 +35,13 @@ export default function AdminMediaTeamDashboard({ basePath = '/admin/media-team'
   // than off /media-team specifically, so derive that root instead of
   // reusing basePath verbatim.
   const rootPath = basePath.startsWith('/media-team') ? '/media-team' : '/admin'
+  // The roster ("manage") page lives at a different path depending on
+  // context: under /admin it's exactly basePath itself
+  // (/admin/media-team), but the standalone member-facing section
+  // registers it one level deeper, at /media-team/manage - linking to
+  // bare /media-team there hits no route and silently falls through to
+  // the "*" catch-all (renders Home), not an error.
+  const manageMediaTeamPath = basePath.startsWith('/media-team') ? `${basePath}/manage` : basePath
 
   useEffect(() => {
     api.get('/admin/media-team/dashboard-summary/')
@@ -50,7 +57,7 @@ export default function AdminMediaTeamDashboard({ basePath = '/admin/media-team'
           <p className="text-slate-600 mt-2">An overview of the Media Team's roster and content activity.</p>
         </div>
         <div className="flex gap-3">
-          <Link to={basePath} className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold">Manage Media Team</Link>
+          <Link to={manageMediaTeamPath} className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold">Manage Media Team</Link>
           {isAdmin && summary?.media_team_ministry_id && (
             <Link to={`/admin/ministries/${summary.media_team_ministry_id}`} className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold">Assign Leaders</Link>
           )}
@@ -73,7 +80,7 @@ export default function AdminMediaTeamDashboard({ basePath = '/admin/media-team'
             </Link>
           ))}
           <Link
-            to={basePath}
+            to={manageMediaTeamPath}
             className="flex items-center gap-3 rounded-2xl border border-slate-200 px-5 py-4 font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition"
           >
             <span className="text-xl">👥</span>
@@ -167,6 +174,7 @@ export default function AdminMediaTeamDashboard({ basePath = '/admin/media-team'
             {summary.recent_activity.map((a, i) => (
               <div key={i} className="flex items-center justify-between rounded-2xl border border-slate-100 px-4 py-3">
                 <span className="flex items-center gap-3">
+                  <span className="text-slate-400 text-sm font-semibold w-5 shrink-0">{i + 1}.</span>
                   <span className="text-xl">{ACTIVITY_ICONS[a.type] || '•'}</span>
                   <span className="text-slate-800 text-sm">{a.label}</span>
                 </span>

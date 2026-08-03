@@ -4,6 +4,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from .admin_provisioning import create_provisioned_admin_account
+from .models import DepartmentAdminAssignment
 from .permissions import is_true_super_admin
 from .serializers import UserSerializer
 
@@ -12,7 +13,13 @@ class ChurchAdminListCreateView(generics.ListAPIView):
     """Super Administrator only: list existing Church Administrator accounts,
     and create new ones. Per spec, only the Super Administrator is
     authorized to create a Church Administrator account, capped at
-    MAX_CHURCH_ADMINS total."""
+    MAX_CHURCH_ADMINS total.
+
+    role='Administrator'/'Pastor' is shared with Department Admins (see
+    permissions.is_church_admin_account), so anyone holding a
+    DepartmentAdminAssignment is excluded here - otherwise they'd count
+    against the Church Admin cap and show up in this list despite not
+    being one."""
 
     MAX_CHURCH_ADMINS = 4
 
@@ -26,6 +33,8 @@ class ChurchAdminListCreateView(generics.ListAPIView):
             profile__role__in=['Administrator', 'Pastor'],
             is_staff=False,
             is_superuser=False,
+        ).exclude(
+            id__in=DepartmentAdminAssignment.objects.values_list('admin_user_id', flat=True),
         ).order_by('username')
 
     def post(self, request, *args, **kwargs):
@@ -36,6 +45,8 @@ class ChurchAdminListCreateView(generics.ListAPIView):
             profile__role__in=['Administrator', 'Pastor'],
             is_staff=False,
             is_superuser=False,
+        ).exclude(
+            id__in=DepartmentAdminAssignment.objects.values_list('admin_user_id', flat=True),
         ).count()
         if existing_count >= self.MAX_CHURCH_ADMINS:
             return Response(
