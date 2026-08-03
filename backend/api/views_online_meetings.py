@@ -20,7 +20,6 @@ from .serializers import PrayerRequestSerializer
 from .serializers_online_meetings import (
     OnlineMeetingAttachmentSerializer,
     OnlineMeetingPollSerializer,
-    OnlineMeetingPollVoteSerializer,
     OnlineMeetingQuestionSerializer,
     OnlineMeetingSerializer,
 )

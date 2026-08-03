@@ -5,7 +5,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from .admin_provisioning import create_provisioned_admin_account
 from .models import MemberProfile, Ministry, DepartmentAdminAssignment, MAX_DEPARTMENT_ADMINS
-from .permissions import is_church_admin, is_department_admin_for
+from .permissions import is_church_admin
 from .role_audit import RoleAuditLog
 from .serializers_department_admin_assignments import (
     DepartmentAdminAssignmentSerializer,

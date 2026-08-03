@@ -1,4 +1,3 @@
-import os
 import secrets
 from datetime import date
 
@@ -11,7 +10,7 @@ from django.utils import timezone
 from rest_framework import generics, permissions, views, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.throttling import ScopedRateThrottle
 

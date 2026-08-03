@@ -1,7 +1,7 @@
 from datetime import datetime, timezone as dt_timezone
 
 from django.contrib.auth.models import User
-from rest_framework import generics, permissions, serializers
+from rest_framework import generics, permissions
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework import status

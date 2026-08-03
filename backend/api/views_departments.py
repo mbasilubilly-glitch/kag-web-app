@@ -2,7 +2,7 @@ from rest_framework import generics, permissions
 from rest_framework.response import Response
 
 from .models import MemberHomecell, MemberMinistry, Ministry
-from .serializers_homecells import HomecellSerializer, MemberMinistrySerializer
+from .serializers_homecells import HomecellSerializer
 from .serializers import MinistrySerializer
 from .views_homecells import seed_if_empty
 

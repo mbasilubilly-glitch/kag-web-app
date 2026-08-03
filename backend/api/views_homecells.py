@@ -8,7 +8,6 @@ from .serializers_homecells import (
     HomecellSerializer,
     MemberDepartmentRegisterSerializer,
     MemberMinistrySerializer,
-    MemberHomecellSerializer,
 )
 from .homecells_defaults import HOME_CELL_OPTIONS, MINISTRY_OPTIONS
 

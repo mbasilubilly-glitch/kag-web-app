@@ -25,7 +25,6 @@ class GalleryRecycleBinView(APIView):
 
     def get(self, request):
         deleted_galleries = _deleted_galleries_queryset(request.user)
-        deleted_gallery_ids = list(deleted_galleries.values_list('id', flat=True))
 
         # Albums/items whose parent gallery isn't itself deleted, but which
         # were individually removed, still need the same department scoping
