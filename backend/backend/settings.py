@@ -75,7 +75,18 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 USE_SQLITE = os.getenv('DJANGO_USE_SQLITE', 'False') == 'True'
 
-if USE_SQLITE:
+# Render (and most PaaS DB add-ons) inject a single DATABASE_URL rather than
+# discrete MYSQL_* vars - takes priority over both the SQLite and MySQL
+# paths below when present, so attaching a managed Postgres on Render needs
+# no other settings changes.
+DATABASE_URL = os.getenv('DATABASE_URL', '')
+
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=True)
+    }
+elif USE_SQLITE:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
