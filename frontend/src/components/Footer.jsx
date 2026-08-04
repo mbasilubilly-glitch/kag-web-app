@@ -11,7 +11,7 @@ function WhatsAppIcon({ className = '' }) {
 export default function Footer() {
   return (
     <footer className="bg-gradient-to-r from-blue-50 to-blue-100 text-gray-700 border-t-4 border-primary-300 dark:from-slate-900 dark:to-slate-900 dark:text-slate-300 dark:border-primary-800 transition-colors duration-300">
-      <div className="pl-72 lg:pl-72">
+      <div className="md:pl-72">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* Company Info */}
