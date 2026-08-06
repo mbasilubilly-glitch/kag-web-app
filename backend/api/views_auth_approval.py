@@ -12,20 +12,24 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models_auth_models import BlacklistedAccessToken
 
 
-MAX_FAILED_LOGIN_ATTEMPTS = 5
-
 STATUS_MESSAGES = {
     'PENDING_APPROVAL': 'Your account is still awaiting approval from a church administrator.',
     'REJECTED': 'Your registration was not approved. Contact the church office for details.',
     'SUSPENDED': 'Your account has been suspended. Contact a church administrator.',
     'DISABLED': 'Your account has been disabled. Contact a church administrator.',
-    'LOCKED': 'Your account is locked after too many failed sign-in attempts. Contact a church administrator to unlock it.',
+    'LOCKED': 'Your account is locked. Contact a church administrator to unlock it.',
 }
 
 
 class TokenObtainPairWithApprovalSerializer(TokenObtainPairSerializer):
-    """Issue JWT only if the user's MemberProfile is ACTIVE. Also tracks
-    failed login attempts and locks the account after too many in a row."""
+    """Issue JWT only if the user's MemberProfile is ACTIVE.
+
+    Failed sign-in attempts are intentionally not tracked or auto-locked -
+    per product decision, users get unlimited login attempts. The per-IP
+    ScopedRateThrottle on the view (see below) is the only anti-brute-force
+    measure; LOCKED remains a valid status (settable by an admin/support
+    action) that still blocks sign-in if ever set directly.
+    """
 
     def validate(self, attrs):
         login_input = attrs.get(self.username_field)
@@ -48,35 +52,7 @@ class TokenObtainPairWithApprovalSerializer(TokenObtainPairSerializer):
             if profile is not None and profile.status == 'LOCKED':
                 raise PermissionDenied(STATUS_MESSAGES['LOCKED'])
 
-        try:
-            data = super().validate(attrs)
-        except PermissionDenied:
-            # Raised by get_token() below for a *correct* password on a
-            # non-ACTIVE account (pending approval, suspended, disabled) -
-            # not a credential failure, so it must never count against the
-            # lockout threshold below (that would let a pending member
-            # lock themselves out before an admin ever approves them).
-            raise
-        except Exception:
-            # Only count real credential failures against the lockout
-            # threshold — a candidate user was found but authentication
-            # (password check) failed to produce a token.
-            if candidate is not None:
-                profile = getattr(candidate, 'profile', None)
-                if profile is not None and profile.status not in ('LOCKED',):
-                    profile.failed_login_attempts += 1
-                    if profile.failed_login_attempts >= MAX_FAILED_LOGIN_ATTEMPTS:
-                        profile.status = 'LOCKED'
-                    profile.save(update_fields=['failed_login_attempts', 'status'])
-            raise
-
-        # Successful login: reset the counter.
-        profile = getattr(candidate, 'profile', None) if candidate else None
-        if profile is not None and profile.failed_login_attempts:
-            profile.failed_login_attempts = 0
-            profile.save(update_fields=['failed_login_attempts'])
-
-        return data
+        return super().validate(attrs)
 
     @classmethod
     def get_token(cls, user):

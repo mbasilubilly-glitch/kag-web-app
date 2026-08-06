@@ -12,7 +12,7 @@ from .serializers_security_questions import (
     SecurityQuestionSerializer,
     SetSecurityQuestionsSerializer,
 )
-from .views_auth_approval import MAX_FAILED_LOGIN_ATTEMPTS, STATUS_MESSAGES
+from .views_auth_approval import STATUS_MESSAGES
 
 # Shown for an unknown identifier or an account with no security questions
 # configured, so this endpoint's response shape never reveals whether an
@@ -80,9 +80,10 @@ class SecurityQuestionsForIdentifierView(APIView):
 class SecurityQuestionResetView(APIView):
     """Public: verifies every configured security answer and, if all
     match, sets a new password directly - no email/SMS code involved.
-    Wrong-answer attempts count against the same account lockout as wrong
-    login passwords (views_auth_approval.py) since both are brute-forceable
-    account-takeover paths."""
+    Wrong-answer attempts are not counted or auto-locked (unlimited
+    attempts, per product decision - see views_auth_approval.py); the
+    'otp' scope ScopedRateThrottle below is the only rate limit on this
+    brute-forceable account-takeover path."""
 
     permission_classes = [permissions.AllowAny]
     throttle_classes = [ScopedRateThrottle]
@@ -115,19 +116,10 @@ class SecurityQuestionResetView(APIView):
         )
 
         if not all_correct:
-            if profile is not None:
-                profile.failed_login_attempts += 1
-                if profile.failed_login_attempts >= MAX_FAILED_LOGIN_ATTEMPTS:
-                    profile.status = 'LOCKED'
-                profile.save(update_fields=['failed_login_attempts', 'status'])
             return Response(generic_error, status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(data['new_password'])
         user.save(update_fields=['password'])
         invalidate_existing_tokens(user)
-
-        if profile is not None and profile.failed_login_attempts:
-            profile.failed_login_attempts = 0
-            profile.save(update_fields=['failed_login_attempts'])
 
         return Response({'detail': 'Password updated.'})
