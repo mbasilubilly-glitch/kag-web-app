@@ -8,6 +8,7 @@ backend/*.sqlite3
 backend/*.sqlite3.bak*
 backend/.env
 backend/media/
+backend/staticfiles/
 
 # Node
 frontend/node_modules/
