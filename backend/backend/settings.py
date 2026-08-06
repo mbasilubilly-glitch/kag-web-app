@@ -30,11 +30,14 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    # Registered unconditionally (harmless no-op when CLOUDINARY_URL is
-    # unset) - must come before staticfiles per django-cloudinary-storage's
-    # own docs.
-    'cloudinary_storage',
     'django.contrib.staticfiles',
+    # Only 'cloudinary' (the base SDK) is registered - NOT 'cloudinary_storage'.
+    # cloudinary_storage.storage.MediaCloudinaryStorage below works fine as a
+    # STORAGES backend reference without its app being installed, and
+    # registering the app pulls in its collectstatic override, which only
+    # knows about the legacy STATICFILES_STORAGE setting and hard-crashes
+    # under Django's newer STORAGES dict (this project's static files are
+    # handled by whitenoise regardless, so nothing is lost by leaving it out).
     'cloudinary',
     'corsheaders',
     'rest_framework',
