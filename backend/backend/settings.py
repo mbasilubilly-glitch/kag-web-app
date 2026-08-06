@@ -30,7 +30,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # Registered unconditionally (harmless no-op when CLOUDINARY_URL is
+    # unset) - must come before staticfiles per django-cloudinary-storage's
+    # own docs.
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
     'corsheaders',
     'rest_framework',
     'api',
@@ -137,9 +142,21 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # WhiteNoiseMiddleware serve them with far-future cache headers - only
 # takes effect where whitenoise is actually in MIDDLEWARE (the Docker
 # deployment); harmless no-op otherwise.
+#
+# Uploaded media (profile pictures, gallery photos, announcement posters)
+# needs storage that survives a redeploy - most PaaS free tiers (Render
+# included) have no persistent disk, so local FileSystemStorage would lose
+# every upload on the next deploy/restart. When CLOUDINARY_URL is set,
+# media is stored on Cloudinary's free tier instead; unset (local dev,
+# cPanel with real disk) keeps the existing filesystem behavior unchanged.
+CLOUDINARY_URL = os.getenv('CLOUDINARY_URL', '')
+
 STORAGES = {
     'default': {
-        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        'BACKEND': (
+            'cloudinary_storage.storage.MediaCloudinaryStorage'
+            if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'
+        ),
     },
     'staticfiles': {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
