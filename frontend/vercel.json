@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://kag-backend-gfvw.onrender.com/api/$1"
+    }
+  ]
+}
