@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.mail import send_mail
 from django.conf import settings as django_settings
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, permissions, views, status
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -563,7 +564,8 @@ class MemberProfileDetailView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         user_pk = self.kwargs.get('pk')
-        obj, created = MemberProfile.objects.get_or_create(user_id=user_pk)
+        target_user = get_object_or_404(User, pk=user_pk)
+        obj, created = MemberProfile.objects.get_or_create(user=target_user)
         if is_true_super_admin(obj.user) and not is_true_super_admin(self.request.user):
             raise PermissionDenied('You do not have permission to access this profile.')
         return obj
